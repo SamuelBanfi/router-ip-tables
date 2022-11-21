@@ -1,28 +1,31 @@
 ## Indice
 
-1. [Introduzione](#introduzione)
-
-   - [Informazioni sul progetto](#informazioni-sul-progetto)
-   
-   - [Scopo](#scopo)
-
-2. [Analisi](#analisi)
-
-    - [Analisi e specifica dei requisiti](#analisi-e-specifica-dei-requisiti)
-
-3. [Implementazione](#implementazione)
-
-4. [Test](#test)
-
-   - [Protocollo di test](#protocollo-di-test)
-
-   - [Risultati test](#risultati-test)
-
-1. [Conclusioni](#conclusioni)
-
-    - [Considerazioni personali](#considerazioni-personali)
-
-2. [Sitografia](#sitografia)
+- [Indice](#indice)
+- [Introduzione](#introduzione)
+  - [Informazioni sul progetto](#informazioni-sul-progetto)
+  - [Scopo](#scopo)
+- [Analisi](#analisi)
+  - [Analisi e specifica dei requisiti](#analisi-e-specifica-dei-requisiti)
+- [Implementazione](#implementazione)
+  - [Configurazione macchine virtuali](#configurazione-macchine-virtuali)
+    - [Router](#router)
+    - [PC rete interna](#pc-rete-interna)
+    - [Webserver](#webserver)
+    - [Impostazione proxy](#impostazione-proxy)
+    - [Impostazione indirizzo ip](#impostazione-indirizzo-ip)
+  - [Installazione e configurazione Apache](#installazione-e-configurazione-apache)
+    - [Installazione](#installazione)
+    - [Configurazione porte in ascolto](#configurazione-porte-in-ascolto)
+  - [Installazione e configurazione IP Tables](#installazione-e-configurazione-ip-tables)
+    - [Installazione](#installazione-1)
+    - [Mostrare tutte le regole attive](#mostrare-tutte-le-regole-attive)
+    - [IP forwarding](#ip-forwarding)
+- [Test](#test)
+  - [Protocollo di test](#protocollo-di-test)
+  - [Risultati test](#risultati-test)
+- [Conclusioni](#conclusioni)
+  - [Considerazioni personali](#considerazioni-personali)
+- [Sitografia](#sitografia)
 
 <br>
 
@@ -214,7 +217,22 @@ Il webserver è configurato nel seguente modo:
 
 #### Impostazione proxy
 
-Durante l'installazione di tutte le macchine virtuali bisogna configurare il proxy impostando l'indirizzo `10.0.4.2:5865`. Il proxy serve solamente all'inizio su tutte le macchine per fare la configurazione iniziale e installare tutti gli aggiornamenti necessari.
+Durante l'installazione di tutte le macchine virtuali bisogna configurare il proxy impostando l'indirizzo `10.0.4.2:5865`. Il proxy serve solamente all'inizio su tutte le macchine per fare la configurazione iniziale e installare tutti gli aggiornamenti necessari. Per utilizzare successivamente il proxy bisogna modificare il file `/etc/environment` e aggiungere le seguenti variabili d'ambiente:
+
+```bash
+http_proxy="http://10.0.2.2:5865"
+https_proxy="http://10.0.2.2:5865"
+HTTP_PROXY="http://10.0.2.2:5865"
+HTTPS_PROXY="http://10.0.2.2:5865"
+no_proxy=localhost,127.0.0.1
+```
+
+L'ultima regola `no_proxy=localhost,127.0.0.1` serve per evitare l'uso del proxy in locale. L'indirizzo ip `10.0.2.2:5865` è quello di `px-py`.<br><br>
+Per essere sicuri del funzionamento del proxy si può usare il comando `curl` per farsi ritornare la pagina html perché questo comando deve passare attraverso il proxy.
+
+```bash
+curl google.com
+```
 
 <br>
 
@@ -228,6 +246,7 @@ iface <interface> inet static
     address <ip_address>
     netmask <ip_subnet>
     gateway <ip_gateway>
+    dns-nameservers 8.8.8.8
 ```
 
 <br>
@@ -279,7 +298,20 @@ sudo iptables -S
 
 <br>
 
-#### 
+#### IP forwarding
+L'IP forwarding ha lo scopo di eseguire il forwarding dei pacchetti in uscita verso le altre schede di rete. Per abilitarlo in modo permanente bisogna modificare il file `/etc/sysctl.conf`.
+
+```bash
+sudo nano /etc/sysctl.conf
+```
+
+In seguito bisogna aggiungere la seguente riga al file per abilitare l'IP forwarding:
+
+```bash
+net.ipv4.ip_forward = 1
+```
+
+<br>
 
 ## Test
 
