@@ -58,7 +58,7 @@ Lo scopo del progetto `IP Tables` è quello di utilizzare un server Debian che f
 <br>
 
 <div style="text-align:center">
-  <img src="schema_di_rete.png" alt="schema_di_rete">
+  <img src="images/schema_di_rete.png" alt="schema_di_rete">
 </div>
 
 <br>
