@@ -19,11 +19,11 @@
   - [Installazione e configurazione IP Tables](#installazione-e-configurazione-ip-tables)
     - [Installazione](#installazione-1)
     - [Mostrare tutte le regole attive](#mostrare-tutte-le-regole-attive)
+    - [Default configuration](#default-configuration)
+    - [SSH al router](#ssh-al-router)
     - [IP forwarding](#ip-forwarding)
     - [Accesso a internet](#accesso-a-internet)
     - [Port forwarding](#port-forwarding)
-    - [SSH al router](#ssh-al-router)
-    - [Default configuration](#default-configuration)
     - [Ping dall'interno al router](#ping-dallinterno-al-router)
 - [Test](#test)
   - [Protocollo di test](#protocollo-di-test)
@@ -79,7 +79,7 @@ Lo scopo del progetto `IP Tables` è quello di utilizzare un server Debian che f
 | **Nome** | Configurazione VM NET 3 |
 | **Priorità** | 1 |
 | **Versione** | 1.0 |
-| **Note** | Bisogna avere una rete privata con indirizzo di rete `192.168.238.0/24`. <br> Tutti i computer nella rete possono accedere ad internet. <br> Non bisogna accedere dall'esterno. <br> Bisogna disabilitare il ping verso la rete interna. |
+| **Note** | Bisogna avere una rete privata con indirizzo di rete `192.168.238.0/24`. <br> Tutti i computer nella rete possono accedere ad internet. <br> Non bisogna accedere dall'esterno. |
 
 <br>
 
@@ -106,7 +106,7 @@ Lo scopo del progetto `IP Tables` è quello di utilizzare un server Debian che f
 | **Nome** | Ping disabilitato |
 | **Priorità** | 1 |
 | **Versione** | 1.0 |
-| **Note** | Il `ping` verso le reti interne deve essere impossibile.<br> Bisogna impostare le schede di rete su `Host-Only`|
+| **Note** | Il `ping` verso le reti interne deve essere impossibile.|
 
 <br>
 
@@ -295,10 +295,25 @@ sudo apt install iptables -y
 
 #### Mostrare tutte le regole attive
 
-Per mostrare tutte le regole attive con IP Tables bisogna eseguire il comando `sudo iptables` aggiungendo il parametro `-S` per listare tutte le regole. Usando `iptables` vengono mostrate tutte le regole per l'`IPv4`. Se si volessero vedere le regole per `IPv6` bisogna usare il comando `sudo ip6tables -S`
+Per mostrare tutte le regole attive con IP Tables bisogna eseguire il comando `sudo iptables` aggiungendo il parametro `-L` per listare tutte le regole. Usando `iptables` vengono mostrate tutte le regole per l'`IPv4`. Se si volessero vedere le regole per `IPv6` bisogna usare il comando `sudo ip6tables -S`
 
 ```bash
-sudo iptables -S
+sudo iptables -L
+```
+
+#### Default configuration
+Per configurare il router con le impostazioni sicure di default bisogna bloccare tutti i pacchetti in entrata.
+
+```bash
+iptables --policy INPUT DROP
+iptables --policy FORWARD DROP
+```
+
+#### SSH al router
+Per potersi collegare al router in ssh bisogna accettare le connessioni ssh all'interfaccia esterna del router.
+
+```bash
+iptables -A INPUT -p tcp --dport ssh -j ACCEPT
 ```
 
 <br>
@@ -348,21 +363,6 @@ Inoltre bisogna accettare tutte le connessioni sulla porta 8080.
 iptables -A FORWARD -i <interfaccia in entrata> -p tcp --dport 8080 -j ACCEPT
 ```
 
-#### SSH al router
-Per potersi collegare al router in ssh bisogna accettare le connessioni ssh all'interfaccia esterna del router.
-
-```bash
-iptables -A INPUT -p tcp --dport ssh -j ACCEPT
-```
-
-#### Default configuration
-Per configurare il router con le impostazioni sicure di default bisogna bloccare tutti i pacchetti in entrata.
-
-```bash
-iptables --policy INPUT DROP
-iptables --policy FORWARD DROP
-```
-
 #### Ping dall'interno al router
 Per poter effettuare un ping dalla rete interna all'interfaccia del router bisogna accettare le connessioni `ICMP`, ma solo dalla rete interna.
 
@@ -378,19 +378,30 @@ iptables -A OUTPUT -o <interfaccia rete interna> -p icmp -j ACCEPT
 ### Protocollo di test
 
  | Test Case       | TC-001                               |
- | --------------- |--------------------------------------|
- | **Nome**        |  |
- | **Riferimento** |  |
- | **Descrizione** |  |
+ | --------------- | -------------------------------------- |
+ | **Nome**        | Test assegnazione IP |
+ | **Riferimento** | REQ-001, REQ-003 |
+ | **Descrizione** | Controllare che il webserver abbia un indirizzo nella rete `192.168.198.0`. <br> Controllare che il PC di test abbia un indirizzo nella rete `192.168.238.0`. <br> Il router invece deve avere tre schede di rete, una con la rete `10.0.2.0`, una `192.168.198.0` e una `192.168.238.0` |
+ | **Prerequisiti** | - |
+ | **Procedura** | 1. Aprire le macchine virtuali. <br> 2. Eseguire il comando `ip a`. <br> 3. Controllare l'indirizzo IP con la dicitura `inet`. |
+ | **Risultati attesi** | Il webserver ha un indirizzo nella rete `192.168.198.0`. <br> Il PC di test ha un indirizzo nella rete `192.168.238.0`. <br> Il router ha tre schede di rete, una con l'indirizzo di rete `10.0.2.0`, una `192.168.198.0` e una `192.168.238.0` |
+
+ <br>
+
+ | Test Case       | TC-002                               |
+ | --------------- | -------------------------------------- |
+ | **Nome**        | Connesione PC test ad internet |
+ | **Riferimento** | REQ-001 |
+ | **Descrizione** | Bisogna verificare che il PC di test nella rete ` |
  | **Prerequisiti** | - |
  | **Procedura** |  |
  | **Risultati attesi** |  |
 
 ### Risultati test
 
- | Test Case | TC-013 |
+ | Test Case | TC-001 |
  | --------- | ------ |
- | Funzionamento |  |
+ | Funzionamento | <div style="text-align:center"><img src="images/ipRouter.png" alt="ip_router"></div> |
  | Commento |  |
  | Data |  |
 
