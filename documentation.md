@@ -1,44 +1,47 @@
-## Indice
+# Router IP Tables
 
-- [Indice](#indice)
-- [Introduzione](#introduzione)
-  - [Informazioni sul progetto](#informazioni-sul-progetto)
-  - [Scopo](#scopo)
-- [Analisi](#analisi)
-  - [Analisi e specifica dei requisiti](#analisi-e-specifica-dei-requisiti)
-- [Implementazione](#implementazione)
-  - [Configurazione macchine virtuali](#configurazione-macchine-virtuali)
-    - [Router](#router)
-    - [PC rete interna](#pc-rete-interna)
-    - [Webserver](#webserver)
-    - [Impostazione proxy](#impostazione-proxy)
-    - [Impostazione indirizzo ip](#impostazione-indirizzo-ip)
-  - [Installazione e configurazione Apache](#installazione-e-configurazione-apache)
-    - [Installazione](#installazione)
-    - [Configurazione porte in ascolto](#configurazione-porte-in-ascolto)
-  - [Installazione e configurazione IP Tables](#installazione-e-configurazione-ip-tables)
-    - [Installazione](#installazione-1)
-    - [Mostrare tutte le regole attive](#mostrare-tutte-le-regole-attive)
-    - [Default configuration](#default-configuration)
-    - [SSH al router](#ssh-al-router)
-    - [IP forwarding](#ip-forwarding)
-    - [Accesso a internet](#accesso-a-internet)
-    - [Port forwarding](#port-forwarding)
-    - [Ping dall'interno al router](#ping-dallinterno-al-router)
-    - [Regole iptables persistenti](#regole-iptables-persistenti)
-- [Test](#test)
-  - [Protocollo di test](#protocollo-di-test)
-  - [Risultati test](#risultati-test)
-- [Conclusioni](#conclusioni)
-  - [Considerazioni personali](#considerazioni-personali)
-- [Sitografia](#sitografia)
+## Indice
+- [Router IP Tables](#router-ip-tables)
+  - [Indice](#indice)
+  - [Introduzione](#introduzione)
+    - [Informazioni sul progetto](#informazioni-sul-progetto)
+    - [Scopo](#scopo)
+  - [Analisi](#analisi)
+    - [Analisi e specifica dei requisiti](#analisi-e-specifica-dei-requisiti)
+  - [Implementazione](#implementazione)
+    - [Configurazione macchine virtuali](#configurazione-macchine-virtuali)
+      - [Router](#router)
+      - [PC rete interna](#pc-rete-interna)
+      - [Webserver](#webserver)
+      - [Impostazione proxy](#impostazione-proxy)
+      - [Impostazione indirizzo ip](#impostazione-indirizzo-ip)
+    - [Installazione e configurazione Apache](#installazione-e-configurazione-apache)
+      - [Installazione](#installazione)
+      - [Configurazione porte in ascolto](#configurazione-porte-in-ascolto)
+    - [Installazione e configurazione IP Tables](#installazione-e-configurazione-ip-tables)
+      - [Installazione](#installazione-1)
+      - [Mostrare tutte le regole attive](#mostrare-tutte-le-regole-attive)
+      - [Default configuration](#default-configuration)
+      - [SSH al router](#ssh-al-router)
+      - [IP forwarding](#ip-forwarding)
+      - [Accesso a internet](#accesso-a-internet)
+      - [Port forwarding](#port-forwarding)
+      - [Ping dall'interno al router](#ping-dallinterno-al-router)
+      - [Regole iptables persistenti](#regole-iptables-persistenti)
+    - [Comandi eseguiti](#comandi-eseguiti)
+  - [Test](#test)
+    - [Protocollo di test](#protocollo-di-test)
+    - [Risultati test](#risultati-test)
+  - [Conclusioni](#conclusioni)
+    - [Considerazioni personali](#considerazioni-personali)
+  - [Sitografia](#sitografia)
 
 <br>
+<div style="page-break-after: always;"></div>
 
 ## Introduzione
 
 ### Informazioni sul progetto
-
  - **Titolo**: Questionario patenti 
 
  - **Allievi coinvolti nel progetto**:
@@ -58,7 +61,6 @@
 <br>
 
 ### Scopo
-
 Lo scopo del progetto `IP Tables` è quello di utilizzare un server Debian che fa da router e gestsice tutte le richieste in entrata e in uscita. Il Server Debian serve anche per dividere tutto in 2 reti Una interna e una DMZ. Una con indrizzo di rete `192.168.238.0/24` e una con indirizzo di rete `192.168.198.0/24`. Quest'ultima viene utilizzata come DMZ dove mettere il server WEB.
 
 <br>
@@ -68,6 +70,7 @@ Lo scopo del progetto `IP Tables` è quello di utilizzare un server Debian che f
 </div>
 
 <br>
+<div style="page-break-after: always;"></div>
 
 ## Analisi
 
@@ -101,6 +104,7 @@ Lo scopo del progetto `IP Tables` è quello di utilizzare un server Debian che f
 | **Note** | Bisogna avere una rete DMZ con indirizzo di rete `192.168.198.0/24`. <br> Bisogna avere un server WEB al suo interno (REQ-002). <br> Bisogna aprire le connessioni in uscita. <br> Bisogna disabilitare le connessioni in entrata, escluso Apache. <br> Il server deve essere raggiungibile dall'esterno solo tramite l'IP del router. |
 
 <br>
+<div style="page-break-after: always;"></div>
 
 | ID | REQ-004 |
 | -------- | - |
@@ -137,6 +141,7 @@ Lo scopo del progetto `IP Tables` è quello di utilizzare un server Debian che f
 | **Note** | Bisogna impostare le regole di default in modo da avere `INPUT` e `FORWARD` bloccati. Invece `OUTPUT` deve essere aperto. |
 
 <br>
+<div style="page-break-after: always;"></div>
 
 | ID | REQ-008 |
 | -------- | - |
@@ -175,6 +180,7 @@ vecchie dovranno essere inserite nei diari.
 requisiti.
 
 <br>
+<div style="page-break-after: always;"></div>
 
 ## Implementazione
 
@@ -217,6 +223,7 @@ Il webserver è configurato nel seguente modo:
 - Sistema operativo: `Debian`
 
 <br>
+<div style="page-break-after: always;"></div>
 
 #### Impostazione proxy
 Durante l'installazione di tutte le macchine virtuali bisogna configurare il proxy impostando l'indirizzo `10.0.2.2:5865`. Il proxy serve solamente all'inizio su tutte le macchine per fare la configurazione iniziale e installare tutti gli aggiornamenti necessari. Per utilizzare successivamente il proxy bisogna modificare il file `/etc/environment` e aggiungere le seguenti variabili d'ambiente:
@@ -251,6 +258,7 @@ iface <interface> inet static
 ```
 
 <br>
+<div style="page-break-after: always;"></div>
 
 ### Installazione e configurazione Apache
 
@@ -274,6 +282,7 @@ Listen 8080
 ```
 
 <br>
+<div style="page-break-after: always;"></div>
 
 ### Installazione e configurazione IP Tables
 
@@ -293,6 +302,8 @@ Per mostrare tutte le regole attive con IP Tables bisogna eseguire il comando `s
 sudo iptables -L
 ```
 
+<br>
+
 #### Default configuration
 Per configurare il router con le impostazioni sicure di default bisogna bloccare tutti i pacchetti in entrata.
 
@@ -300,6 +311,8 @@ Per configurare il router con le impostazioni sicure di default bisogna bloccare
 iptables --policy INPUT DROP
 iptables --policy FORWARD DROP
 ```
+
+<br>
 
 #### SSH al router
 Per potersi collegare al router in ssh bisogna accettare le connessioni ssh all'interfaccia esterna del router.
@@ -309,6 +322,7 @@ iptables -A INPUT -p tcp --dport ssh -j ACCEPT
 ```
 
 <br>
+<div style="page-break-after: always;"></div>
 
 #### IP forwarding
 L'IP forwarding ha lo scopo di eseguire il forwarding dei pacchetti in uscita verso le altre schede di rete. Per abilitarlo in modo permanente bisogna modificare il file `/etc/sysctl.conf`.
@@ -322,6 +336,8 @@ In seguito bisogna decommentare la seguente riga al file per abilitare l'IP forw
 ```bash
 net.ipv4.ip_forward = 1
 ```
+
+<br>
 
 #### Accesso a internet
 Per poter accedere ad internet dalla lan bisogna impostare le regole di nat. Questo serve per cambiare l'ip e la porta di destinazione.
@@ -342,6 +358,9 @@ Infine bisogna accettare tutte le connessioni in entrata che hanno lo stato `REL
 iptables -A FORWARD -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT
 ```
 
+<br>
+<div style="page-break-after: always;"></div>
+
 #### Port forwarding
 Per fare il port forwarding dalla porta 443 esterna alla porta 8080 interna bisogna prima cambiare la porta di destinazione.
 
@@ -355,6 +374,8 @@ Inoltre bisogna accettare tutte le connessioni sulla porta 8080.
 iptables -A FORWARD -i <interfaccia in entrata> -p tcp --dport 8080 -j ACCEPT
 ```
 
+<br>
+
 #### Ping dall'interno al router
 Per poter effettuare un ping dalla rete interna all'interfaccia del router bisogna accettare le connessioni `ICMP`, ma solo dalla rete interna.
 
@@ -362,6 +383,8 @@ Per poter effettuare un ping dalla rete interna all'interfaccia del router bisog
 iptables -A INPUT -i <interfaccia rete interna> -p icmp -j ACCEPT
 iptables -A OUTPUT -o <interfaccia rete interna> -p icmp -j ACCEPT
 ```
+
+<br>
 
 #### Regole iptables persistenti
 Per rendere le regole di iptables persistenti bisogna installare un pacchetto aggiuntivo.
@@ -371,6 +394,45 @@ sudo apt-get install iptables-persistent
 ```
 
 <br>
+<div style="page-break-after: always;"></div>
+
+### Comandi eseguiti
+```bash
+sudo nano /etc/sysctl.conf
+  net.ipv4.ip_forward = 1
+```
+```bash
+iptables --policy INPUT DROP
+iptables --policy FORWARD DROP
+iptables -A INPUT -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT
+iptables -A INPUT -p tcp --dport ssh -j ACCEPT
+
+iptables -t nat -A POSTROUTING -s 192.168.198.0/24 -o enp0s3 -j MASQUERADE
+iptables -t nat -A POSTROUTING -s 192.168.238.0/24 -o enp0s3 -j MASQUERADE
+
+iptables -A FORWARD -s 192.168.198.0/24 -i enp0s9 -j ACCEPT
+iptables -A FORWARD -s 192.168.238.0/24 -i enp0s8 -j ACCEPT
+iptables -A FORWARD -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT
+
+iptables -t nat -A PREROUTING -i enp0s3 -p tcp --dport 443 -j DNAT --to-destination 192.168.198.10:8080
+iptables -A FORWARD -i enp0s3 -p tcp --dport 8080 -j ACCEPT
+
+iptables -A INPUT -i enp0s9 -p icmp -j ACCEPT
+iptables -A OUTPUT -o enp0s9 -p icmp -j ACCEPT
+iptables -A INPUT -i enp0s8 -p icmp -j ACCEPT
+iptables -A OUTPUT -o enp0s8 -p icmp -j ACCEPT
+```
+```bash
+sudo nano /etc/environment
+http_proxy="http://10.0.2.2:5865"
+https_proxy="http://10.0.2.2:5865"
+HTTP_PROXY="http://10.0.2.2:5865"
+HTTPS_PROXY="http://10.0.2.2:5865"
+no_proxy=localhost,127.0.0.1
+```
+
+<br>
+<div style="page-break-after: always;"></div>
 
 ## Test
 
@@ -397,6 +459,7 @@ sudo apt-get install iptables-persistent
  | **Risultati attesi** | Viene mostrato il contenuto della pagina HTML di Google. |
 
  <br>
+ <div style="page-break-after: always;"></div>
 
  | Test Case       | TC-003                               |
  | --------------- | -------------------------------------- |
@@ -430,6 +493,7 @@ sudo apt-get install iptables-persistent
  | **Risultati attesi** | I pacchetti inviati con il ping vanno in timeout. |
  
  <br>
+ <div style="page-break-after: always;"></div>
 
  | Test Case       | TC-006                               |
  | --------------- | -------------------------------------- |
@@ -462,6 +526,9 @@ sudo apt-get install iptables-persistent
  | **Procedura** | 1. Usare il router. <br> 2. Caricare le regole di IP Tables. <br> 3. Riavviare il router. <br> 4. Controllare le configurazioni con il comando `iptables -S` |
  | **Risultati attesi** | Vengono mostrate tutte le regole aggiunte in precedenza. |
 
+ <br>
+ <div style="page-break-after: always;"></div>
+
 ### Risultati test
 
  | Test Case | TC-001 |
@@ -471,6 +538,7 @@ sudo apt-get install iptables-persistent
  | Data | 26.11.2022 |
 
  <br>
+ <div style="page-break-after: always;"></div>
 
  | Test Case | TC-002 |
  | --------- | ------ |
@@ -487,6 +555,7 @@ sudo apt-get install iptables-persistent
  | Data | 26.11.2022 |
 
  <br>
+ <div style="page-break-after: always;"></div>
 
  | Test Case | TC-004 |
  | --------- | ------ |
@@ -519,6 +588,7 @@ sudo apt-get install iptables-persistent
  | Data | 26.11.2022 |
  
  <br>
+ <div style="page-break-after: always;"></div>
 
  | Test Case | TC-008 |
  | --------- | ------ |
@@ -527,6 +597,7 @@ sudo apt-get install iptables-persistent
  | Data | 26.11.2022 |
 
  <br>
+ <div style="page-break-after: always;"></div>
 
 ## Conclusioni
 
