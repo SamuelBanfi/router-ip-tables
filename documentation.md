@@ -25,6 +25,7 @@
     - [Accesso a internet](#accesso-a-internet)
     - [Port forwarding](#port-forwarding)
     - [Ping dall'interno al router](#ping-dallinterno-al-router)
+    - [Regole iptables persistenti](#regole-iptables-persistenti)
 - [Test](#test)
   - [Protocollo di test](#protocollo-di-test)
   - [Risultati test](#risultati-test)
@@ -63,7 +64,7 @@ Lo scopo del progetto `IP Tables` è quello di utilizzare un server Debian che f
 <br>
 
 <div style="text-align:center">
-  <img src="images/schema_di_rete.png" alt="schema_di_rete">
+  <img src="images/schemaDiRete.png" alt="schemaDiRete">
 </div>
 
 <br>
@@ -97,7 +98,7 @@ Lo scopo del progetto `IP Tables` è quello di utilizzare un server Debian che f
 | **Nome** | Configurazione VM NET 4 |
 | **Priorità** | 1 |
 | **Versione** | 1.0 |
-| **Note** | Bisogna avere una rete DMZ con indirizzo di rete `192.168.198.0/24`. <br> Bisogna avere un server WEB al suo interno (REQ-002). <br> Bisogna aprire le connessioni in uscita. <br> Bisogna disabilitare le connessioni in entrata. (Escluso Apache). <br> Il server deve essere raggiungibile dall'esterno solo tramite l'IP del router. <br>  |
+| **Note** | Bisogna avere una rete DMZ con indirizzo di rete `192.168.198.0/24`. <br> Bisogna avere un server WEB al suo interno (REQ-002). <br> Bisogna aprire le connessioni in uscita. <br> Bisogna disabilitare le connessioni in entrata, escluso Apache. <br> Il server deve essere raggiungibile dall'esterno solo tramite l'IP del router. |
 
 <br>
 
@@ -106,7 +107,7 @@ Lo scopo del progetto `IP Tables` è quello di utilizzare un server Debian che f
 | **Nome** | Ping disabilitato |
 | **Priorità** | 1 |
 | **Versione** | 1.0 |
-| **Note** | Il `ping` verso le reti interne deve essere impossibile.|
+| **Note** | Il `ping` verso le reti interne deve essere impossibile. |
 
 <br>
 
@@ -137,7 +138,7 @@ Lo scopo del progetto `IP Tables` è quello di utilizzare un server Debian che f
 
 <br>
 
-| ID | REQ-009 |
+| ID | REQ-008 |
 | -------- | - |
 | **Nome** | Salvataggio regole IP Tables |
 | **Priorità** | 1 |
@@ -146,7 +147,7 @@ Lo scopo del progetto `IP Tables` è quello di utilizzare un server Debian che f
 
 <br>
 
-| ID | REQ-010 |
+| ID | REQ-009 |
 | -------- | - |
 | **Nome** | Caricamento automatico regole IP Tables ad ogni riavvio |
 | **Priorità** | 1 |
@@ -180,7 +181,6 @@ requisiti.
 ### Configurazione macchine virtuali
 
 #### Router
-
 Il router è configurato nel seguente modo:
 
 - CPU: 2 core
@@ -195,7 +195,6 @@ Il router è configurato nel seguente modo:
 <br>
 
 #### PC rete interna
-
 Il PC della rete interna è configurato nel seguente modo:
 
 - CPU: 2 core
@@ -208,7 +207,6 @@ Il PC della rete interna è configurato nel seguente modo:
 <br>
 
 #### Webserver
-
 Il webserver è configurato nel seguente modo:
 
 - CPU: 2 core
@@ -221,7 +219,6 @@ Il webserver è configurato nel seguente modo:
 <br>
 
 #### Impostazione proxy
-
 Durante l'installazione di tutte le macchine virtuali bisogna configurare il proxy impostando l'indirizzo `10.0.2.2:5865`. Il proxy serve solamente all'inizio su tutte le macchine per fare la configurazione iniziale e installare tutti gli aggiornamenti necessari. Per utilizzare successivamente il proxy bisogna modificare il file `/etc/environment` e aggiungere le seguenti variabili d'ambiente:
 
 ```bash
@@ -242,7 +239,6 @@ curl google.com
 <br>
 
 #### Impostazione indirizzo ip
-
 Visto che stiamo lavorando su `Debian` per modificare l'indirizzo ip delle macchine bisogna modificare il file `/etc/network/interfaces` aggiungendo le varie schede di rete e impostando gli indirizzi ip (`address`), le subnet mask (`netmask`) e i `gateway`. Bisogna inserire quest'ultimo campo solo se quella determinata scheda di rete serve per uscire su internet.
 
 ```bash
@@ -259,7 +255,6 @@ iface <interface> inet static
 ### Installazione e configurazione Apache
 
 #### Installazione
-
 Per installare `Apache 2.4` bisogna eseguire l'`update` per aggiornare tutte le librerie. In seguito bisogna eseguire il comando `sudo apt install apache2 -y` per installare Apache. Attenzione, per installare i pacchetti bisogna eseguire le operazioni come `sudo`, ovvero come `superuser`.
 
 ```bash
@@ -269,7 +264,6 @@ sudo apt install apache2 -y
 <br>
 
 #### Configurazione porte in ascolto
-
 Per configurare le porte in ascolto da Apache sul server bisogna modificare il file `/etc/apache2/ports.conf` e aggiungere un `Listen` per la porta `8080`. Non serve aggiungerlo per la porta `443` perché è già presente di default come per la porta 80.
 
 ```bash
@@ -284,7 +278,6 @@ Listen 8080
 ### Installazione e configurazione IP Tables
 
 #### Installazione
-
 Di default `iptables` non è presente su Debian. Quindi va installato tramite `apt`. Una volta installato tutte le regole di default vengono impostate su `accept`.
 
 ```bash
@@ -294,7 +287,6 @@ sudo apt install iptables -y
 <br>
 
 #### Mostrare tutte le regole attive
-
 Per mostrare tutte le regole attive con IP Tables bisogna eseguire il comando `sudo iptables` aggiungendo il parametro `-L` per listare tutte le regole. Usando `iptables` vengono mostrate tutte le regole per l'`IPv4`. Se si volessero vedere le regole per `IPv6` bisogna usare il comando `sudo ip6tables -S`
 
 ```bash
@@ -371,6 +363,13 @@ iptables -A INPUT -i <interfaccia rete interna> -p icmp -j ACCEPT
 iptables -A OUTPUT -o <interfaccia rete interna> -p icmp -j ACCEPT
 ```
 
+#### Regole iptables persistenti
+Per rendere le regole di iptables persistenti bisogna installare un pacchetto aggiuntivo.
+
+```bash
+sudo apt-get install iptables-persistent
+```
+
 <br>
 
 ## Test
@@ -392,23 +391,150 @@ iptables -A OUTPUT -o <interfaccia rete interna> -p icmp -j ACCEPT
  | --------------- | -------------------------------------- |
  | **Nome**        | Connesione PC test ad internet |
  | **Riferimento** | REQ-001 |
- | **Descrizione** | Bisogna verificare che il PC di test nella rete ` |
+ | **Descrizione** | Bisogna verificare che il PC di test nella rete `192.168.238.0` possa accedere ad internet. |
  | **Prerequisiti** | - |
- | **Procedura** |  |
- | **Risultati attesi** |  |
+ | **Procedura** | 1. Avviare il PC di test. <br> 2. Eseguire il comando `curl google.com`. |
+ | **Risultati attesi** | Viene mostrato il contenuto della pagina HTML di Google. |
+
+ <br>
+
+ | Test Case       | TC-003                               |
+ | --------------- | -------------------------------------- |
+ | **Nome**        | Funzionamento Apache |
+ | **Riferimento** | REQ-002 |
+ | **Descrizione** | Bisogna verificare che il servizio di Apache è in ascolto sulla porta 443 (dall'esterno) e sulla 8080 (dall'interno). |
+ | **Prerequisiti** | - |
+ | **Procedura** | 1. Avviare il PC di test (rete interna). <br> 2. Eseguire il comando `curl 192.168.198.10:8080`. <br> 3. Usare il PC host. <br> 4. Cercare su un browser `localhost:443`. |
+ | **Risultati attesi** | Viene mostrato il contenuto della pagina HTML del webserver interno. |
+
+ <br>
+
+ | Test Case       | TC-004                               |
+ | --------------- | -------------------------------------- |
+ | **Nome**        | Verifica connessioni in entrata disabilitate |
+ | **Riferimento** | REQ-003 |
+ | **Descrizione** | Bisogna verificare che le connessioni in entrata sono disabilitate, escluso Apache. |
+ | **Prerequisiti** | - |
+ | **Procedura** | 1. Usare il PC host. <br> 2. Cercare su un browser `192.168.198.10:8080`. <br> 3. Usare il PC host. <br> 4. Cercare su un browser `localhost:443`. |
+ | **Risultati attesi** | Nel primo caso la richiesta fallisce. <br> Nel secondo caso invece viene mostrata la pagina HTML del webserver locale. |
+
+ <br>
+
+ | Test Case       | TC-005                               |
+ | --------------- | -------------------------------------- |
+ | **Nome**        | Verifica ping impossibile verso le reti interne |
+ | **Riferimento** | REQ-004 |
+ | **Descrizione** | Bisogna verificare che il `ping` verso le reti interne è impossibile. |
+ | **Prerequisiti** | - |
+ | **Procedura** | 1. Usare il PC host. <br> 2. Eseguire il comando dal terminale `ping 192.168.198.10`. |
+ | **Risultati attesi** | I pacchetti inviati con il ping vanno in timeout. |
+ 
+ <br>
+
+ | Test Case       | TC-006                               |
+ | --------------- | -------------------------------------- |
+ | **Nome**        | Verifica accesso al router tramite SSH |
+ | **Riferimento** | REQ-005 |
+ | **Descrizione** | Bisogna verificare l'accesso al router tramite `SSH` per la configurazione. |
+ | **Prerequisiti** | - |
+ | **Procedura** | 1. Usare il PC host. <br> 2. Eseguire il comando dal terminale `ssh administrator@10.0.2.6:2222`. |
+ | **Risultati attesi** | Il collegamento SSH avviene correttamente e come utente attuale si vede `administrator`. |
+ 
+ <br>
+
+ | Test Case       | TC-007                               |
+ | --------------- | -------------------------------------- |
+ | **Nome**        | Verificare regole di default per IP Tables |
+ | **Riferimento** | REQ-007 |
+ | **Descrizione** | Bisogna verificare che le regole di default siano impostate in modo da avere `INPUT` e `FORWARD` bloccati. Invece `OUTPUT` deve essere aperto. |
+ | **Prerequisiti** | - |
+ | **Procedura** | 1. Usare il router. <br> 2. Eseguire il comando dal terminale `sudo iptables -S`. |
+ | **Risultati attesi** | Il comando mostra `INPUT` e `FORWARD` bloccati. Invece `OUTPUT` risulta aperto. |
+
+ <br>
+
+ | Test Case       | TC-008                               |
+ | --------------- | -------------------------------------- |
+ | **Nome**        | Veriificare caricamento automatico regole |
+ | **Riferimento** | REQ-009 |
+ | **Descrizione** | Bisogna verificare che le regole di IP Tables vengano caricate automaticamente ad ogni riavvio. |
+ | **Prerequisiti** | REQ-008 |
+ | **Procedura** | 1. Usare il router. <br> 2. Caricare le regole di IP Tables. <br> 3. Riavviare il router. <br> 4. Controllare le configurazioni con il comando `iptables -S` |
+ | **Risultati attesi** | Vengono mostrate tutte le regole aggiunte in precedenza. |
 
 ### Risultati test
 
  | Test Case | TC-001 |
  | --------- | ------ |
- | Funzionamento | <div style="text-align:center"><img src="images/ipRouter.png" alt="ip_router"></div> |
- | Commento |  |
- | Data |  |
+ | Funzionamento | <div style="text-align:center"><img src="images/ipRouter.png" alt="ipRouter"></div><br><div style="text-align:center"><img src="images/ipServer.png" alt="ipServer"></div><br><div style="text-align:center"><img src="images/ipClient.png" alt="ipClient"></div><br> |
+ | Commento | Negli screenshot si vedono le 3 macchine con i rispettivi indirizzi ip. |
+ | Data | 26.11.2022 |
+
+ <br>
+
+ | Test Case | TC-002 |
+ | --------- | ------ |
+ | Funzionamento | <div style="text-align:center"><img src="images/clientCurlGoogle.png" alt="clientCurlGoogle"></div> |
+ | Commento | Nello screenshot si vede la macchina client che esegue il comando curl verso google.com. |
+ | Data | 26.11.2022 |
+
+ <br>
+
+ | Test Case | TC-003 |
+ | --------- | ------ |
+ | Funzionamento | <div style="text-align:center"><img src="images/internalCurl.png" alt="internalCurl"></div><br><div style="text-align:center"><img src="images/externalBrowsing.png" alt="externalBrowsing"></div> |
+ | Commento | Nel primo screenshot si vede che dalla macchina client si riesce a contattare il webserver nella dmz.<br>Nella seconda immagine si vede che da un browser della macchina host, il nostro internet, si riesce a vedere la pagina del webserver tramite l'ip del router. |
+ | Data | 26.11.2022 |
+
+ <br>
+
+ | Test Case | TC-004 |
+ | --------- | ------ |
+ | Funzionamento | <div style="text-align:center"><img src="images/externalBrowsing.png" alt="externalBrowsing"></div><br><div style="text-align:center"><img src="images/externalWrongBrowsing.png" alt="externalWrongBrowsing"></div> |
+ | Commento | Nel primo screenshot si vede la connessione che non può essere stabilita. La causa è che non è possibile arrivare al webserver direttamente con il suo ip.<br>Nel secondo screenshot si vede la connessione stabilita perchè viene chiamato l'ip del router. |
+ | Data | 26.11.2022 |
+
+ <br>
+
+ | Test Case | TC-005 |
+ | --------- | ------ |
+ | Funzionamento | <div style="text-align:center"><img src="images/externalPing.png" alt="externalPing"></div> |
+ | Commento | Nello screenshot si vede il tentativo del ping ma non riesce perchè non conosce quella rete. |
+ | Data | 26.11.2022 |
+
+ <br>
+
+ | Test Case | TC-006 |
+ | --------- | ------ |
+ | Funzionamento | <div style="text-align:center"><img src="images/externalSsh.png" alt="externalSsh"></div> |
+ | Commento | Nello screenshot si vede l'accessso effettuato tramite ssh alla porta 2222 dalla macchina host. |
+ | Data | 26.11.2022 |
+ 
+ <br>
+
+ | Test Case | TC-007 |
+ | --------- | ------ |
+ | Funzionamento | <div style="text-align:center"><img src="images/iptablesPolicies.png" alt="iptablesPolicies"></div> |
+ | Commento | Nello screenshot si vede la configurazione delle catene INPUT, FORWARD e OUTPUT. Le prime due sono `DROP` e l'ultima è `ACCEPT`. |
+ | Data | 26.11.2022 |
+ 
+ <br>
+
+ | Test Case | TC-008 |
+ | --------- | ------ |
+ | Funzionamento | <div style="text-align:center"><img src="images/iptablesConfiguration.png" alt="iptablesConfiguration"></div><br><div style="text-align:center"><img src="images/iptablesPersistent.png" alt="iptablesPersistent"></div> |
+ | Commento | Nel primo screenshot si vede l'inserimento delle regole in iptables.<br>Nel secondo screenshot si vedono le regole di iptables anche dopo il riavvio. |
+ | Data | 26.11.2022 |
+
+ <br>
 
 ## Conclusioni
 
 ### Considerazioni personali
+- Samuel Banfi: A me personalmente è piaciuto molto questo progetto. Mi ha aiutato a capire meglio le funzionalità di Linux, ma soprattutto come rendere sicura una rete da possibili intrusioni esterne. Sono però dell'idea che se avessimo avuto un po' di tempo in più saremmo riusciti a migliorare ancora di più la sicurezza. Credo che questo progetto mi tornerà utile in futuro in una azienda.
+  
+- Dennis Donofrio: Questo progetto è stato bello ed utile. Mi è piaciuto il fatto di lavorare con un programma molto semplice ma allo stesso tempo molto utile. Inoltre iptables lo si psuò utilizzare su qualsiasi macchina linux e non serve per forza usarlo come router. Una cosa che abbiamo notato è che non è installato di default su tutte le macchine linux. Su debian bisogna installarlo manualmente, come la maggior parte dei programmi di base, come il comando `sudo`. Mi sono trovato molto bene a lavorare in gruppo perchè siamo riusciti a dividerci i compiti. Questo ha reso il tutto più semplice.
 
 ## Sitografia
-
- - sito<br>Data ultima visita: data
+ - [moodle.edu.ti.ch](https://moodle.edu.ti.ch/cpt), Data ultima visita: 26.11.2022
+ - [stackoverflow.com](https://stackoverflow.com), Data ultima visita: 25.11.2022
