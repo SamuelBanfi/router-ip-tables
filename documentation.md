@@ -20,6 +20,11 @@
     - [Installazione](#installazione-1)
     - [Mostrare tutte le regole attive](#mostrare-tutte-le-regole-attive)
     - [IP forwarding](#ip-forwarding)
+    - [Accesso a internet](#accesso-a-internet)
+    - [Port forwarding](#port-forwarding)
+    - [SSH al router](#ssh-al-router)
+    - [Default configuration](#default-configuration)
+    - [Ping dall'interno al router](#ping-dallinterno-al-router)
 - [Test](#test)
   - [Protocollo di test](#protocollo-di-test)
   - [Risultati test](#risultati-test)
@@ -181,10 +186,10 @@ Il router è configurato nel seguente modo:
 - CPU: 2 core
 - RAM: 2 GB
 - Rete:
-  - `NAT network`
+  - `NAT network` DHCP
   - `Internal network` lan (192.168.238.1/24)
   - `Internal network` dmz (192.168.198.1/24)
-  - `Host-Only`
+  - `Host-Only` DHCP
 - Sistema operativo: `Debian`
 
 <br>
@@ -197,7 +202,7 @@ Il PC della rete interna è configurato nel seguente modo:
 - RAM: 2 GB
 - Rete: 
   - `Internal network` lan (192.168.238.10/24, 192.168.238.1)
-  - `Host-Only` 
+  - `Host-Only` DHCP
 - Sistema operativo: `Debian`
 
 <br>
@@ -210,14 +215,14 @@ Il webserver è configurato nel seguente modo:
 - RAM: 2 GB
 - Rete:
   - `Internal network` dmz (192.168.198.10/24, 192.168.198.1)
-  - `Host-Only` 
+  - `Host-Only` DHCP
 - Sistema operativo: `Debian`
 
 <br>
 
 #### Impostazione proxy
 
-Durante l'installazione di tutte le macchine virtuali bisogna configurare il proxy impostando l'indirizzo `10.0.4.2:5865`. Il proxy serve solamente all'inizio su tutte le macchine per fare la configurazione iniziale e installare tutti gli aggiornamenti necessari. Per utilizzare successivamente il proxy bisogna modificare il file `/etc/environment` e aggiungere le seguenti variabili d'ambiente:
+Durante l'installazione di tutte le macchine virtuali bisogna configurare il proxy impostando l'indirizzo `10.0.2.2:5865`. Il proxy serve solamente all'inizio su tutte le macchine per fare la configurazione iniziale e installare tutti gli aggiornamenti necessari. Per utilizzare successivamente il proxy bisogna modificare il file `/etc/environment` e aggiungere le seguenti variabili d'ambiente:
 
 ```bash
 http_proxy="http://10.0.2.2:5865"
@@ -228,7 +233,7 @@ no_proxy=localhost,127.0.0.1
 ```
 
 L'ultima regola `no_proxy=localhost,127.0.0.1` serve per evitare l'uso del proxy in locale. L'indirizzo ip `10.0.2.2:5865` è quello di `px-py`.<br><br>
-Per essere sicuri del funzionamento del proxy si può usare il comando `curl` per farsi ritornare la pagina html perché questo comando deve passare attraverso il proxy.
+Per essere sicuri del funzionamento del proxy si può usare il comando `curl` per farsi ritornare la pagina html perché questo comando deve passare attraverso il proxy. Senza la configurazione di iptables il seguente comando funziona solo per il router.
 
 ```bash
 curl google.com
@@ -238,7 +243,7 @@ curl google.com
 
 #### Impostazione indirizzo ip
 
-Essendo che stiamo lavorando su `Debian` per modificare l'indirizzo ip delle macchine bisogna modificare il file `/etc/network/interfaces` aggiungendo le varie schede di rete e impostando gli indirizzi ip (`address`), le subnet mask (`netmask`) e i `gateway`.
+Visto che stiamo lavorando su `Debian` per modificare l'indirizzo ip delle macchine bisogna modificare il file `/etc/network/interfaces` aggiungendo le varie schede di rete e impostando gli indirizzi ip (`address`), le subnet mask (`netmask`) e i `gateway`. Bisogna inserire quest'ultimo campo solo se quella determinata scheda di rete serve per uscire su internet.
 
 ```bash
 auto <interface>
@@ -265,7 +270,7 @@ sudo apt install apache2 -y
 
 #### Configurazione porte in ascolto
 
-Per configurare le porte in ascolto da Apache sul server bisogna modificare il file `etc/apache2/ports.conf` e aggiungere un `Listen` per la porta `8080`. Non serve aggiungerlo per la porta `443` perché è già presente di default come per la porta 80.
+Per configurare le porte in ascolto da Apache sul server bisogna modificare il file `/etc/apache2/ports.conf` e aggiungere un `Listen` per la porta `8080`. Non serve aggiungerlo per la porta `443` perché è già presente di default come per la porta 80.
 
 ```bash
 sudo nano /etc/apache2/ports.conf
@@ -305,10 +310,65 @@ L'IP forwarding ha lo scopo di eseguire il forwarding dei pacchetti in uscita ve
 sudo nano /etc/sysctl.conf
 ```
 
-In seguito bisogna aggiungere la seguente riga al file per abilitare l'IP forwarding:
+In seguito bisogna decommentare la seguente riga al file per abilitare l'IP forwarding:
 
 ```bash
 net.ipv4.ip_forward = 1
+```
+
+#### Accesso a internet
+Per poter accedere ad internet dalla lan bisogna impostare le regole di nat. Questo serve per cambiare l'ip e la porta di destinazione.
+
+```bash
+iptables -t nat -A POSTROUTING -s <rete interna>/<maschera> -o <interfaccia di uscita> -j MASQUERADE
+```
+
+Inoltre bisogna accettare tutte le connessioni dalla rete interna verso l'interfaccia in internet.
+
+```bash
+iptables -A FORWARD -s <rete interna>/<maschera> -i <interfaccia di uscita> -j ACCEPT
+```
+
+Infine bisogna accettare tutte le connessioni in entrata che hanno lo stato `RELATED` o `ESTABLISHED`.
+
+```bash
+iptables -A FORWARD -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT
+```
+
+#### Port forwarding
+Per fare il port forwarding dalla porta 443 esterna alla porta 8080 interna bisogna prima cambiare la porta di destinazione.
+
+```bash
+iptables -t nat -A PREROUTING -i <interfaccia in entrata> -p tcp --dport 443 -j DNAT --to-destination <ip interno>:8080
+```
+
+Inoltre bisogna accettare tutte le connessioni sulla porta 8080.
+
+```bash
+iptables -A FORWARD -i <interfaccia in entrata> -p tcp --dport 8080 -j ACCEPT
+```
+
+#### SSH al router
+Per potersi collegare al router in ssh bisogna accettare le connessioni ssh all'interfaccia esterna del router.
+
+```bash
+iptables -A INPUT -p tcp --dport ssh -j ACCEPT
+```
+
+#### Default configuration
+Per configurare il router con le impostazioni sicure di default bisogna bloccare tutti i pacchetti in entrata.
+
+```bash
+iptables --policy INPUT DROP
+iptables --policy FORWARD DROP
+```
+
+#### Ping dall'interno al router
+Per poter effettuare un ping dalla rete interna all'interfaccia del router bisogna accettare le connessioni `ICMP`, ma solo dalla rete interna.
+
+```bash
+iptables -A INPUT -i <interfaccia rete interna> -p icmp -j ACCEPT
+iptables -A OUTPUT -o <interfaccia rete interna> -p icmp -j ACCEPT
 ```
 
 <br>
