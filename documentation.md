@@ -61,7 +61,7 @@
 <br>
 
 ### Scopo
-Lo scopo del progetto `IP Tables` è quello di utilizzare un server Debian che fa da router e gestsice tutte le richieste in entrata e in uscita. Il Server Debian serve anche per dividere tutto in 2 reti Una interna e una DMZ. Una con indrizzo di rete `192.168.238.0/24` e una con indirizzo di rete `192.168.198.0/24`. Quest'ultima viene utilizzata come DMZ dove mettere il server WEB.
+Lo scopo del progetto `IP Tables` è quello di utilizzare un server Debian che fa da router e gestisce tutte le richieste in entrata e in uscita. Il Server Debian serve anche per dividere tutto in 2 reti Una interna e una DMZ. Una con indirizzo di rete `192.168.238.0/24` e una con indirizzo di rete `192.168.198.0/24`. Quest'ultima viene utilizzata come DMZ dove mettere il server WEB.
 
 <br>
 
@@ -451,7 +451,7 @@ no_proxy=localhost,127.0.0.1
 
  | Test Case       | TC-002                               |
  | --------------- | -------------------------------------- |
- | **Nome**        | Connesione PC test ad internet |
+ | **Nome**        | Connessione PC test ad internet |
  | **Riferimento** | REQ-001 |
  | **Descrizione** | Bisogna verificare che il PC di test nella rete `192.168.238.0` possa accedere ad internet. |
  | **Prerequisiti** | - |
@@ -519,7 +519,7 @@ no_proxy=localhost,127.0.0.1
 
  | Test Case       | TC-008                               |
  | --------------- | -------------------------------------- |
- | **Nome**        | Veriificare caricamento automatico regole |
+ | **Nome**        | Verificare caricamento automatico regole |
  | **Riferimento** | REQ-009 |
  | **Descrizione** | Bisogna verificare che le regole di IP Tables vengano caricate automaticamente ad ogni riavvio. |
  | **Prerequisiti** | REQ-008 |
@@ -576,7 +576,7 @@ no_proxy=localhost,127.0.0.1
  | Test Case | TC-006 |
  | --------- | ------ |
  | Funzionamento | <div style="text-align:center"><img src="images/externalSsh.png" alt="externalSsh"></div> |
- | Commento | Nello screenshot si vede l'accessso effettuato tramite ssh alla porta 2222 dalla macchina host. |
+ | Commento | Nello screenshot si vede l'accesso effettuato tramite ssh alla porta 2222 dalla macchina host. |
  | Data | 26.11.2022 |
  
  <br>
@@ -604,7 +604,7 @@ no_proxy=localhost,127.0.0.1
 ### Considerazioni personali
 - Samuel Banfi: A me personalmente è piaciuto molto questo progetto. Mi ha aiutato a capire meglio le funzionalità di Linux, ma soprattutto come rendere sicura una rete da possibili intrusioni esterne. Sono però dell'idea che se avessimo avuto un po' di tempo in più saremmo riusciti a migliorare ancora di più la sicurezza. Credo che questo progetto mi tornerà utile in futuro in una azienda.
   
-- Dennis Donofrio: Questo progetto è stato bello ed utile. Mi è piaciuto il fatto di lavorare con un programma molto semplice ma allo stesso tempo molto utile. Inoltre iptables lo si psuò utilizzare su qualsiasi macchina linux e non serve per forza usarlo come router. Una cosa che abbiamo notato è che non è installato di default su tutte le macchine linux. Su debian bisogna installarlo manualmente, come la maggior parte dei programmi di base, come il comando `sudo`. Mi sono trovato molto bene a lavorare in gruppo perchè siamo riusciti a dividerci i compiti. Questo ha reso il tutto più semplice.
+- Dennis Donofrio: Questo progetto è stato bello ed utile. Mi è piaciuto il fatto di lavorare con un programma molto semplice ma allo stesso tempo molto utile. Inoltre iptables lo si può utilizzare su qualsiasi macchina linux e non serve per forza usarlo come router. Una cosa che abbiamo notato è che non è installato di default su tutte le macchine linux. Su debian bisogna installarlo manualmente, come la maggior parte dei programmi di base, come il comando `sudo`. Mi sono trovato molto bene a lavorare in gruppo perchè siamo riusciti a dividerci i compiti. Questo ha reso il tutto più semplice.
 
 ## Sitografia
  - [moodle.edu.ti.ch](https://moodle.edu.ti.ch/cpt), Data ultima visita: 26.11.2022
